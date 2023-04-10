@@ -36,6 +36,34 @@ module video_delay #()(
         .clk_in(dvi_clk),
         .clk_out(dvi_clk_delayed));
 
+    logic btn_sync_up;
+    logic btn_sync_down;
+    logic btn_sync_left;
+    logic btn_sync_right;
+    synchronizer the_btn_up_synchronizer(
+        .clk(clk),
+        .resetn(resetn),
+        .signal_in(btn_up),
+        .signal_out(btn_sync_up));
+
+    synchronizer the_btn_down_synchronizer(
+        .clk(clk),
+        .resetn(resetn),
+        .signal_in(btn_down),
+        .signal_out(btn_sync_down));
+
+    synchronizer the_btn_left_synchronizer(
+        .clk(clk),
+        .resetn(resetn),
+        .signal_in(btn_left),
+        .signal_out(btn_sync_left));
+
+    synchronizer the_btn_right_synchronizer(
+        .clk(clk),
+        .resetn(resetn),
+        .signal_in(btn_right),
+        .signal_out(btn_sync_right));
+
     logic [7:0] segments[8];
     sevens the_sevens(
         .clk(clk),
@@ -43,6 +71,21 @@ module video_delay #()(
         .segments(segments),
         .ca(sevens_ca),
         .an(sevens_an));
+
+    logic [3:0] pattern;
+    pattern_selector the_pattern_selector(
+        .clk(clk),
+        .resetn(resetn),
+        .btn_up(btn_sync_up),
+        .btn_down(btn_sync_down),
+        .btn_left(btn_sync_left),
+        .btn_right(btn_sync_right),
+        .pattern(pattern));
+
+    logic [7:0] pattern_segment;
+    seven_pattern the_seven_pattern(
+        .pattern(pattern),
+        .ca(pattern_segment));
 
     dvi_driver the_dvi_driver(
         .clk(dvi_clk),
@@ -53,7 +96,8 @@ module video_delay #()(
         .dvi_de(dvi_de),
         .dvi_vs(dvi_vs),
         .dvi_hs(dvi_hs),
-        .dvi_d(dvi_d));
+        .dvi_d(dvi_d),
+        .pattern(pattern));
 
     logic light_on;
     light_sensor the_light_sensor(
@@ -62,16 +106,17 @@ module video_delay #()(
         .sensor(sensor),
         .on(light_on));
 
-    sevens_demo the_sevens_demo(
-        .clk(clk),
-        .resetn(resetn),
-        .btn_up(btn_up),
-        .btn_down(btn_down),
-        .btn_left(btn_left),
-        .btn_right(btn_right),
-        .segments(segments));
-
     always_comb begin
         led = light_on ? '1 : '0;
+        segments = '{
+            8'd0,
+            8'd0,
+            8'd0,
+            8'd0,
+            8'd0,
+            8'd0,
+            8'd0,
+            pattern_segment
+        };
     end
 endmodule
