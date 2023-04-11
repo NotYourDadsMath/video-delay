@@ -12,7 +12,9 @@ module dvi_driver #()(
     output logic dvi_hs,
     output logic [11:0] dvi_d,
 
-    input logic [3:0] pattern);
+    input logic enable,
+    input logic [3:0] pattern,
+    output logic tick);
 
     localparam V_BACK_PORCH = 20;
     localparam V_ACTIVE = 720;
@@ -33,6 +35,8 @@ module dvi_driver #()(
         STATE_SYNC
     } state_e;
 
+    logic tick_next;
+
     state_e v_state;
     state_e v_state_next;
     logic [$clog2(V_ACTIVE)-1:0] v_count;
@@ -42,6 +46,9 @@ module dvi_driver #()(
     state_e h_state_next;
     logic [$clog2(H_ACTIVE)-1:0] h_count;
     logic [$clog2(H_ACTIVE)-1:0] h_count_next;
+
+    logic enabled;
+    logic enabled_next;
 
     logic active;
     logic active_next;
@@ -57,6 +64,16 @@ module dvi_driver #()(
 
     logic h_in_range;
     logic v_in_range;
+
+    logic h_in_center;
+    logic v_in_center;
+
+    logic enable_sync;
+    synchronizer the_enable_synchronizer(
+        .clk(clk),
+        .resetn(resetn),
+        .signal_in(enable),
+        .signal_out(enable_sync));
 
     genvar i;
     generate
@@ -129,19 +146,29 @@ module dvi_driver #()(
             .S(1'b0));
 
     always_comb begin
+        tick_next = '0;
+
         v_state_next = v_state;
         v_count_next = v_count;
         h_state_next = h_state;
         h_count_next = h_count;
+        enabled_next = (
+            v_state == STATE_ACTIVE ?
+                enabled :
+                enable_sync);
+
         active_next = active;
         vsync_next = vsync;
         hsync_next = hsync;
-        data_next = data;
+        data_next = '0;
         pattern_sync_next[1] = pattern_sync[0];
         pattern_sync_next[0] = pattern;
 
         h_in_range = '0;
         v_in_range = '0;
+
+        h_in_center = '0;
+        v_in_center = '0;
 
         if (ready) begin
             case (h_state)
@@ -234,21 +261,30 @@ module dvi_driver #()(
             active_next = v_state == STATE_ACTIVE && h_state == STATE_ACTIVE;
             vsync_next = v_state == STATE_SYNC;
             hsync_next = h_state == STATE_SYNC;
-            if (active_next) begin
+            if (enabled && active_next) begin
                 case (pattern_sync[1])
                     4'd0,
                     4'd3,
-                    4'd6: h_in_range = h_count <= 2 * RADIUS;
+                    4'd6: begin
+                        h_in_range = h_count <= 2 * RADIUS;
+                        h_in_center = h_count == RADIUS;
+                    end
 
                     4'd1,
                     4'd4,
-                    4'd7: h_in_range = (
-                        (h_count >= (H_ACTIVE / 2) - RADIUS) &&
-                        (h_count <= (H_ACTIVE / 2) + RADIUS));
+                    4'd7: begin
+                        h_in_range = (
+                            (h_count >= (H_ACTIVE / 2) - RADIUS) &&
+                            (h_count <= (H_ACTIVE / 2) + RADIUS));
+                        h_in_center = h_count == (H_ACTIVE / 2);
+                    end
 
                     4'd2,
                     4'd5,
-                    4'd8: h_in_range = h_count >= (H_ACTIVE - 2 * RADIUS) - 1;
+                    4'd8: begin
+                        h_in_range = h_count >= (H_ACTIVE - 2 * RADIUS) - 1;
+                        h_in_center = h_count == H_ACTIVE - RADIUS - 1;
+                    end
 
                     default: ;
                 endcase
@@ -256,17 +292,26 @@ module dvi_driver #()(
                 case (pattern_sync[1])
                     4'd0,
                     4'd1,
-                    4'd2: v_in_range = v_count <= 2 * RADIUS;
+                    4'd2: begin
+                        v_in_range = v_count <= 2 * RADIUS;
+                        v_in_center = v_count == RADIUS;
+                    end
 
                     4'd3,
                     4'd4,
-                    4'd5: v_in_range = (
-                        (v_count >= (V_ACTIVE / 2) - RADIUS) &&
-                        (v_count <= (V_ACTIVE / 2) + RADIUS));
+                    4'd5: begin
+                        v_in_range = (
+                            (v_count >= (V_ACTIVE / 2) - RADIUS) &&
+                            (v_count <= (V_ACTIVE / 2) + RADIUS));
+                        v_in_center = v_count == (V_ACTIVE / 2);
+                    end
 
                     4'd6,
                     4'd7,
-                    4'd8: v_in_range = v_count >= (V_ACTIVE - 2 * RADIUS) - 1;
+                    4'd8: begin
+                        v_in_range = v_count >= (V_ACTIVE - 2 * RADIUS) - 1;
+                        v_in_center = v_count == V_ACTIVE - RADIUS - 1;
+                    end
 
                     default: ;
                 endcase
@@ -275,16 +320,19 @@ module dvi_driver #()(
                     (h_in_range && v_in_range) ?
                         '1 :
                         '0);
+                tick_next = (h_in_center && v_in_center);
             end
         end
     end
 
     always_ff @(posedge clk or negedge resetn) begin
         if (!resetn) begin
+            tick <= '0;
             v_state <= STATE_BACK_PORCH;
             v_count <= '0;
             h_state <= STATE_BACK_PORCH;
             h_count <= '0;
+            enabled <= '0;
             active <= '0;
             vsync <= '0;
             hsync <= '0;
@@ -292,10 +340,12 @@ module dvi_driver #()(
             pattern_sync <= '{default: 4'd0};
         end
         else begin
+            tick <= tick_next;
             v_state <= v_state_next;
             v_count <= v_count_next;
             h_state <= h_state_next;
             h_count <= h_count_next;
+            enabled <= enabled_next;
             active <= active_next;
             vsync <= vsync_next;
             hsync <= hsync_next;

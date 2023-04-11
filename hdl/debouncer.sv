@@ -8,7 +8,8 @@ module debouncer #(
     input logic resetn,
 
     input logic signal_in,
-    output logic signal_out);
+    output logic signal_out,
+    output logic debouncing);
 
     typedef enum logic [0:0] {
         READY,
@@ -31,6 +32,7 @@ module debouncer #(
             HOLD == "TRUE" ?
                 on :
                 '0);
+        debouncing = state == DEBOUNCING;
         state_next = state;
         on_next = on;
         count_next = count;

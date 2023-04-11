@@ -24,7 +24,8 @@ module pattern_selector #()(
             .clk(clk),
             .resetn(resetn),
             .signal_in(btn_up),
-            .signal_out(up));
+            .signal_out(up),
+            .debouncing());
 
     debouncer #(
         .HOLD("FALSE"))
@@ -32,7 +33,8 @@ module pattern_selector #()(
             .clk(clk),
             .resetn(resetn),
             .signal_in(btn_down),
-            .signal_out(down));
+            .signal_out(down),
+            .debouncing());
 
     debouncer #(
         .HOLD("FALSE"))
@@ -40,7 +42,8 @@ module pattern_selector #()(
             .clk(clk),
             .resetn(resetn),
             .signal_in(btn_left),
-            .signal_out(left));
+            .signal_out(left),
+            .debouncing());
 
     debouncer #(
         .HOLD("FALSE"))
@@ -48,7 +51,8 @@ module pattern_selector #()(
             .clk(clk),
             .resetn(resetn),
             .signal_in(btn_right),
-            .signal_out(right));
+            .signal_out(right),
+            .debouncing());
 
     always_comb begin
         pattern_next = pattern;

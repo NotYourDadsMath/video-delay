@@ -87,6 +87,8 @@ module video_delay #()(
         .pattern(pattern),
         .ca(pattern_segment));
 
+    logic dvi_enable;
+    logic dvi_tick;
     dvi_driver the_dvi_driver(
         .clk(dvi_clk),
         .clk_delayed(dvi_clk_delayed),
@@ -97,22 +99,33 @@ module video_delay #()(
         .dvi_vs(dvi_vs),
         .dvi_hs(dvi_hs),
         .dvi_d(dvi_d),
-        .pattern(pattern));
+        .enable(dvi_enable),
+        .pattern(pattern),
+        .tick(dvi_tick));
 
-    logic light_on;
-    light_sensor the_light_sensor(
+    logic sensor_sync;
+    synchronizer the_sensor_synchronizer(
         .clk(clk),
         .resetn(resetn),
-        .sensor(sensor),
-        .on(light_on));
+        .signal_in(sensor),
+        .signal_out(sensor_sync));
+
+    logic [7:0] timer_segments[4];
+    timer the_timer(
+        .clk(clk),
+        .resetn(resetn),
+        .enable(dvi_enable),
+        .send(dvi_tick),
+        .receive(sensor_sync),
+        .segments(timer_segments));
 
     always_comb begin
-        led = light_on ? '1 : '0;
+        led = sensor_sync ? '1 : '0;
         segments = '{
-            8'd0,
-            8'd0,
-            8'd0,
-            8'd0,
+            timer_segments[0],
+            timer_segments[1],
+            timer_segments[2],
+            timer_segments[3],
             8'd0,
             8'd0,
             8'd0,
