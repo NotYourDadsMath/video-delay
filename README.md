@@ -33,7 +33,7 @@ This repository is organized into branches for each of the development steps out
     * Output a basic 720p 60Hz signal from the DVI chip that displays a color gradient
 3. [Sevens](https://github.com/NotYourDadsMath/video-delay/tree/feature/03-sevens)
     * Wire up user interface components of buttons and seven segment displays
-4. [Patterns](https://github.com/NotYourDadsMath/video-delay/tree/feature/04-patterns)
+4. [Patterns](https://github.com/NotYourDadsMath/video-delay/tree/feature/04-patterns) (this branch)
     * Create a user interface to control the pattern of pixels sent out by the DVI chip
 5. [Timer](https://github.com/NotYourDadsMath/video-delay/tree/feature/05-timer)
     * Implement a timer to control the DVI output, measure a TV or monitor's response, and show the measured results on the seven segment displays
