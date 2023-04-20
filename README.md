@@ -35,5 +35,5 @@ This repository is organized into branches for each of the development steps out
     * Wire up user interface components of buttons and seven segment displays
 4. [Patterns](https://github.com/NotYourDadsMath/video-delay/tree/feature/04-patterns)
     * Create a user interface to control the pattern of pixels sent out by the DVI chip
-5. [Timer](https://github.com/NotYourDadsMath/video-delay/tree/feature/05-timer)
+5. [Timer](https://github.com/NotYourDadsMath/video-delay/tree/feature/05-timer) (this branch)
     * Implement a timer to control the DVI output, measure a TV or monitor's response, and show the measured results on the seven segment displays
