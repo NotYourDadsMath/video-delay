@@ -31,7 +31,7 @@ This repository is organized into branches for each of the development steps out
     * Read data from the custom photodiode circuit and light up the development board's LEDs
 2. [DVI](https://github.com/NotYourDadsMath/video-delay/tree/feature/02-dvi)
     * Output a basic 720p 60Hz signal from the DVI chip that displays a color gradient
-3. [Sevens](https://github.com/NotYourDadsMath/video-delay/tree/feature/03-sevens)
+3. [Sevens](https://github.com/NotYourDadsMath/video-delay/tree/feature/03-sevens) (this branch)
     * Wire up user interface components of buttons and seven segment displays
 4. [Patterns](https://github.com/NotYourDadsMath/video-delay/tree/feature/04-patterns)
     * Create a user interface to control the pattern of pixels sent out by the DVI chip
