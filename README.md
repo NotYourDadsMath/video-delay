@@ -27,7 +27,7 @@ With a little effort, it should be very possible to port this project to other D
 
 This repository is organized into branches for each of the development steps outlined in the video:
 
-1. [Sensor](https://github.com/NotYourDadsMath/video-delay/tree/feature/01-sensor)
+1. [Sensor](https://github.com/NotYourDadsMath/video-delay/tree/feature/01-sensor) (this branch)
     * Read data from the custom photodiode circuit and light up the development board's LEDs
 2. [DVI](https://github.com/NotYourDadsMath/video-delay/tree/feature/02-dvi)
     * Output a basic 720p 60Hz signal from the DVI chip that displays a color gradient
